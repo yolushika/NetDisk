@@ -1,0 +1,49 @@
+﻿# Qt 项目 .gitignore
+
+# 编译输出
+build-*/
+build/
+*.o
+*.obj
+*.moc
+*.rcc
+*.qm
+*.exe
+*.dll
+*.so
+*.dylib
+*.a
+*.lib
+
+# Qt Creator 用户配置
+*.pro.user
+*.pro.user.*
+.qtcreator/
+
+# Makefile
+Makefile
+Makefile.*
+
+# 调试符号
+*.pdb
+*.ilk
+
+# IDE
+.vs/
+.vscode/
+.idea/
+
+# 压缩包
+*.zip
+*.7z
+*.rar
+
+# 系统文件
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# 临时文件
+*~
+*.swp
+*.bak
