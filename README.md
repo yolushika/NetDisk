@@ -35,6 +35,7 @@ NetDisk/
 │   ├── CMySQL/               # MySQL 数据库层
 │   │   ├── cmysql.cpp/h      # 数据库操作封装
 │   │   └── CMySQL.pri
+│   ├── init_database.sql     # 数据库初始化脚本
 │   ├── packdef.h             # 通信协议定义
 │   ├── main.cpp              # 服务端入口
 │   └── 3-21-server.pro       # Qt 项目文件
@@ -74,6 +75,7 @@ struct STRU_BASE {
 ```
 
 支持的消息类型：
+
 | 类型 | 说明 |
 |------|------|
 | 注册请求/响应 | 用户注册 |
@@ -89,44 +91,56 @@ struct STRU_BASE {
 
 ## 环境要求
 
-- **操作系统**：Windows（当前开发环境）、Linux（需适配）
+- **操作系统**：Windows（当前开发环境）
 - **Qt 版本**：Qt 5.15.2 (MinGW 64-bit)
-- **编译器**：MinGW 64-bit（Windows）、GCC（Linux）
+- **编译器**：MinGW 64-bit
 - **数据库**：MySQL 5.7+
 - **构建工具**：qmake
 
-## 编译与运行
+## 快速开始
 
-### 服务端
+### 1. 初始化数据库
+
+运行 `3-21-server/init_database.sql` 创建数据库和表：
+
+```bash
+mysql -u root -p < 3-21-server/init_database.sql
+```
+
+数据库结构：
+
+| 表名 | 说明 |
+|------|------|
+| `user` | 用户表（u_id, u_name, u_password, u_tel） |
+| `file` | 文件表，按 MD5 去重（f_id, f_name, f_size, f_MD5, f_path, f_count） |
+| `user_file` | 用户-文件映射表（u_id, f_id, time） |
+| `user_shared` | 分享表（uid, fid, code） |
+| `ufile` | 视图：user_file JOIN file，方便查询用户文件列表 |
+
+### 2. 修改数据库连接
+
+在 `3-21-server/Kernel/kernel.cpp` 的 `open()` 函数中修改连接参数：
+
+```cpp
+m_pSql->ConnectMySql("127.0.0.1", "root", "your_password", "3-22NetDisk");
+```
+
+### 3. 编译运行
+
+**服务端：**
 
 ```bash
 cd 3-21-server
 qmake 3-21-server.pro
-mingw32-make    # Windows
-# make          # Linux
+mingw32-make
 ```
 
-运行前需确保 MySQL 数据库已配置，连接参数在 `CMySQL/cmysql.cpp` 中设置。
-
-### 客户端
+**客户端：**
 
 ```bash
 cd 3-29client
 qmake 3-29client.pro
-mingw32-make    # Windows
-# make          # Linux
-```
-
-## 数据库配置
-
-在 `3-21-server/CMySQL/cmysql.cpp` 中修改数据库连接参数：
-
-```cpp
-// 修改为你的 MySQL 配置
-db.setHostName("localhost");
-db.setDatabaseName("netdisk");
-db.setUserName("root");
-db.setPassword("your_password");
+mingw32-make
 ```
 
 ## 技术亮点
@@ -134,6 +148,7 @@ db.setPassword("your_password");
 - **自定义二进制协议**：高效的数据传输格式，减少网络开销
 - **MD5 文件校验**：保证文件完整性，实现秒传功能
 - **断点续传**：大文件上传失败后可从中断位置继续
+- **文件引用计数**：同一文件被多用户持有时不重复存储，通过 f_count 管理
 - **模块化架构**：网络层、数据库层、业务逻辑层分离，易于维护和扩展
 - **信号槽通信**：客户端使用 Qt 信号槽机制实现异步网络响应处理
 
